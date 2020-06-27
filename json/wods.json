@@ -1,0 +1,46 @@
+{
+  "AMRAP": [
+    {
+      "id": "01",
+      "default_duration": "1200",
+      "exercises": [
+        {
+          "id": "01",
+          "exercise": "Kettlebell Swings",
+          "reps": "15"
+        },
+        {
+          "id": "02",
+          "exercise": "Kettlebell Goblet Squats",
+          "reps": "10"
+        },
+        {
+          "id": "03",
+          "exercise": "Push Ups",
+          "reps": "10"
+        }
+      ]
+    }
+  ],
+  "Tabata": [
+    {
+      "id": "01",
+      "default_sets": "4",
+      "rest_time": "60",
+      "exercises": [
+        {
+          "id": "01",
+          "exercise": "Air Squats"
+        },
+        {
+          "id": "02",
+          "exercise": "V Lookups"
+        },
+        {
+          "id": "03",
+          "exercise": "Kettlebell Swings"
+        }
+      ]
+    }
+  ]
+}
