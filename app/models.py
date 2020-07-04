@@ -1,86 +1,11 @@
 from datetime import datetime
-from app import db
-from app import login
-from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import UserMixin
 from hashlib import md5
-
-
-@login.user_loader
-def load_user(id):
-    return User.query.get(int(id))
-
-
-users_programs = db.Table(
-    'users_programs',
-    db.Column(
-        'user_id',
-        db.Integer,
-        db.ForeignKey('user.id'),
-        primary_key=True),
-    db.Column(
-        'program_id',
-        db.Integer,
-        db.ForeignKey('program.id'),
-        primary_key=True),
-    db.Column(
-        'timestamp',
-        db.DateTime,
-        index=True,
-        default=datetime.utcnow))
-
-programs_workouts = db.Table(
-    'programs_workouts',
-    db.Column(
-        'program_id',
-        db.Integer,
-        db.ForeignKey('program.id'),
-        primary_key=True),
-    db.Column(
-        'workout_id',
-        db.Integer,
-        db.ForeignKey('workout.id'),
-        primary_key=True),
-    db.Column(
-        'week',
-        db.Integer),
-    db.Column(
-        'day_of_week',
-        db.Integer),
-    db.Column(
-        'am',
-        db.Boolean),
-    db.Column(
-        'pm',
-        db.Boolean))
-
-workouts_exercises = db.Table(
-    'workouts_exercises',
-    db.Column(
-        'workout_id',
-        db.Integer,
-        db.ForeignKey('workout.id'),
-        primary_key=True),
-    db.Column(
-        'exercise_id',
-        db.Integer,
-        db.ForeignKey('exercise.id'),
-        primary_key=True),
-    db.Column(
-        'sets',
-        db.Integer),
-    db.Column(
-        'reps',
-        db.Integer),
-    db.Column(
-        'rest',
-        db.String(64)),
-    db.Column(
-        'duration',
-        db.Integer),
-    db.Column(
-        'effort',
-        db.Integer))
+from time import time
+from flask import current_app
+from flask_login import UserMixin
+from werkzeug.security import generate_password_hash, check_password_hash
+import jwt
+from app import db, login
 
 
 followers = db.Table(
@@ -92,27 +17,20 @@ followers = db.Table(
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    first_name = db.Column(db.String(64))
-    last_name = db.Column(db.String(64))
     username = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(120), index=True, unique=True)
     password_hash = db.Column(db.String(128))
+    posts = db.relationship('Post', backref='author', lazy='dynamic')
     about_me = db.Column(db.String(140))
     last_seen = db.Column(db.DateTime, default=datetime.utcnow)
-    # Relationships
-    # -------------
-    # Programs
-    users_programs = db.relationship(
-        'Program', secondary=users_programs,
-        lazy='subquery', backref=db.backref('users', lazy=True))
-    # Followers
     followed = db.relationship(
         'User', secondary=followers,
         primaryjoin=(followers.c.follower_id == id),
         secondaryjoin=(followers.c.followed_id == id),
         backref=db.backref('followers', lazy='dynamic'), lazy='dynamic')
-    # Posts
-    posts = db.relationship('Post', backref='author', lazy='dynamic')
+
+    def __repr__(self):
+        return '<User {}>'.format(self.username)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -144,8 +62,25 @@ class User(UserMixin, db.Model):
         own = Post.query.filter_by(user_id=self.id)
         return followed.union(own).order_by(Post.timestamp.desc())
 
-    def __repr__(self):
-        return '<User {}>'.format(self.username)
+    def get_reset_password_token(self, expires_in=600):
+        return jwt.encode(
+            {'reset_password': self.id, 'exp': time() + expires_in},
+            current_app.config['SECRET_KEY'],
+            algorithm='HS256').decode('utf-8')
+
+    @staticmethod
+    def verify_reset_password_token(token):
+        try:
+            id = jwt.decode(token, current_app.config['SECRET_KEY'],
+                            algorithms=['HS256'])['reset_password']
+        except:
+            return
+        return User.query.get(id)
+
+
+@login.user_loader
+def load_user(id):
+    return User.query.get(int(id))
 
 
 class Post(db.Model):
@@ -153,50 +88,7 @@ class Post(db.Model):
     body = db.Column(db.String(140))
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    language = db.Column(db.String(5))
 
     def __repr__(self):
         return '<Post {}>'.format(self.body)
-
-
-class Program(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(140))
-    goal = db.Column(db.String(140))
-    description = db.Column(db.String(140))
-    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
-    # Relationships
-    programs_workouts = db.relationship(
-        'Workout',
-        secondary=programs_workouts,
-        lazy='subquery',
-        backref=db.backref(
-            'programs',
-            lazy=True))
-
-    def __repr__(self):
-        return '<Program {}>'.format(self.title)
-
-
-class Workout(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    workout_type = db.Column(db.String(64))
-    # Relationships
-    workouts_exercises = db.relationship(
-        'Exercise',
-        secondary=workouts_exercises,
-        lazy='subquery',
-        backref=db.backref(
-            'workouts',
-            lazy=True))
-
-    def __repr__(self):
-        return '<Workout {}>'.format(self.title)
-
-
-class Exercise(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    exercise_title = db.Column(db.String(64))
-    exercise_type = db.Column(db.String(64))
-
-    def __repr__(self):
-        return '<Exercise {}>'.format(self.title)
