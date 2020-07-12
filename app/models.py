@@ -15,6 +15,13 @@ followers = db.Table(
 )
 
 
+pledges = db.Table(
+    'pledges',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
+    db.Column('pledge_id', db.Integer, db.ForeignKey('pledge.id'))
+)
+
+
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), index=True, unique=True)
@@ -28,6 +35,9 @@ class User(UserMixin, db.Model):
         primaryjoin=(followers.c.follower_id == id),
         secondaryjoin=(followers.c.followed_id == id),
         backref=db.backref('followers', lazy='dynamic'), lazy='dynamic')
+    pledges = db.relationship(
+        'Pledge', secondary=pledges,
+        lazy='subquery', backref=db.backref('users', lazy=True))
 
     def __repr__(self):
         return '<User {}>'.format(self.username)
@@ -92,3 +102,12 @@ class Post(db.Model):
 
     def __repr__(self):
         return '<Post {}>'.format(self.body)
+
+
+class Pledge(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(140))
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+
+    def __repr__(self):
+        return '<Pledge {}>'.format(self.title)

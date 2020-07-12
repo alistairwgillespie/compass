@@ -1,0 +1,71 @@
+{
+    "title": "Brian McKenzie's Marathon Plan",
+    "description": "",
+    "duration_weeks": "13",
+    "weeks": [
+        {
+            "week": "one",
+            "days": [
+                {
+                    "day": "Monday",
+                    "activities": [
+                        {
+                            "title": "CrossFit"
+                        }
+                        ]
+                },
+                {
+                    "day": "Tuesday",
+                    "activities": [
+                        {
+                            "title": "AM: 8-10 x 200m/ rest 2:00 betw. each"
+                        },
+                        {
+                            "title": "PM:CrossFit"
+                        }
+                        ]
+                },
+                {
+                    "day": "Wednesday",
+                    "activities": [
+                        {
+                            "title": "CrossFit (run bias) or OFF"
+                        }
+                        ]
+                },
+                {
+                    "day": "Thursday",
+                    "activities": [
+                        {
+                            "title": "4-5 x 800m/ rest 2:30 betw. each"
+                        }
+                        ]
+                },               
+                {
+                    "day": "Friday",
+                    "activities": [
+                        {
+                            "title": "CrossFit or OFF"
+                        }
+                        ]
+                },
+                {
+                    "day": "Saturday",
+                    "activities": [
+                        {
+                            "title": "5K TT"
+                        }
+                        ]
+                },
+                {
+                    "day": "Sunday",
+                    "activities": [
+                        {
+                            "title": "CrossFit"
+                        }
+                        ]
+                }
+            ]
+        }
+        ]
+}
